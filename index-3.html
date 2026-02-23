@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>ISOFORGE</title>
+<script src="https://js.puter.com/v2/"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg1:#080808;--bg2:#111;--brd:#1e1e1e;--brd2:#2e2e2e;--fg:#ccc;--fg2:#777;--fg3:#444;--ac:#c3ff00;--acD:#c3ff0020;--hot:#ff3344;--hd:'Space Grotesk',sans-serif;--mn:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:9999}
+body{background:var(--bg);color:var(--fg);font-family:var(--mn);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+.top{height:40px;background:var(--bg);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0;z-index:10}
+.logo{font-family:var(--hd);font-size:16px;font-weight:700;color:var(--ac);letter-spacing:2px}
+.tsep{width:1px;height:16px;background:var(--brd)}
+.tlab{font-size:10px;color:var(--fg3);letter-spacing:1px;font-family:var(--hd)}
+.tright{margin-left:auto;display:flex;align-items:center;gap:6px}
+.msw{display:flex;border:1px solid var(--brd);border-radius:3px;overflow:hidden}
+.msw button{background:transparent;border:none;color:var(--fg3);font-family:var(--hd);font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;transition:all .12s}
+.msw button.on{background:var(--ac);color:#000}
+.app{flex:1;display:grid;grid-template-columns:270px 1fr 250px;overflow:hidden}
+.lpan{background:var(--bg1);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden}
+.lscr{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:12px}
+.lscr::-webkit-scrollbar{width:3px}.lscr::-webkit-scrollbar-thumb{background:var(--brd2)}
+.sh{font-family:var(--hd);font-size:11px;font-weight:700;color:var(--fg3);letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:6px;text-transform:uppercase}
+.sh::after{content:'';flex:1;height:1px;background:var(--brd)}
+.tile-picker{display:flex;flex-wrap:wrap;gap:2px;max-height:180px;overflow-y:auto}
+.tile-picker::-webkit-scrollbar{width:3px}.tile-picker::-webkit-scrollbar-thumb{background:var(--brd2)}
+.tp{width:44px;height:44px;background-repeat:no-repeat;border:1px solid transparent;border-radius:2px;cursor:pointer;transition:border-color .1s;overflow:hidden}
+.tp:hover{border-color:var(--brd2)}.tp.sel{border-color:var(--ac);box-shadow:0 0 0 1px var(--acD)}
+.pbox{background:var(--bg);border:1px solid var(--brd);border-radius:3px;padding:2px}
+.pbox:focus-within{border-color:var(--ac);box-shadow:0 0 0 2px var(--acD)}
+.pta{width:100%;min-height:56px;background:transparent;border:none;color:var(--fg);font-family:var(--mn);font-size:12px;padding:8px;resize:vertical;outline:none;line-height:1.5}
+.pta::placeholder{color:var(--fg3)}
+.presets{display:flex;flex-wrap:wrap;gap:3px}
+.pre{background:var(--bg);border:1px solid var(--brd);border-radius:3px;padding:4px 8px;font-family:var(--hd);font-size:10px;font-weight:500;color:var(--fg2);cursor:pointer;transition:all .1s;white-space:nowrap}
+.pre:hover{border-color:var(--ac);color:var(--ac);background:var(--acD)}
+.orow{display:flex;align-items:center;justify-content:space-between}
+.olab{font-size:11px;color:var(--fg2);font-family:var(--hd);font-weight:500}
+.osel{background:var(--bg);border:1px solid var(--brd);border-radius:3px;color:var(--fg);font-family:var(--mn);font-size:11px;padding:3px 6px;outline:none;cursor:pointer}
+.osel:focus{border-color:var(--ac)}.osel option{background:var(--bg)}
+.lfoot{padding:8px 10px;border-top:1px solid var(--brd);background:var(--bg1)}
+.gbtn{width:100%;padding:11px;background:var(--ac);border:none;border-radius:3px;color:#000;font-family:var(--hd);font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;position:relative;overflow:hidden;transition:all .15s}
+.gbtn:hover:not(:disabled){box-shadow:0 0 20px var(--acD)}
+.gbtn:disabled{opacity:.5;cursor:wait}
+.gbtn.ld{background:var(--bg);border:1px solid var(--ac);color:var(--ac)}
+.gbtn.ld::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--acD),transparent);animation:sw 1.2s infinite}
+@keyframes sw{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.gstat{font-size:10px;color:var(--fg3);margin-top:5px;min-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mn)}
+.gstat .step{color:var(--ac);font-weight:700}
+.gstat .err{color:var(--hot)}
+.ccol{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.cbar{height:34px;background:var(--bg1);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 8px;gap:3px;flex-shrink:0}
+.tb{background:transparent;border:1px solid transparent;border-radius:3px;color:var(--fg3);font-family:var(--hd);font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;transition:all .1s}
+.tb:hover{border-color:var(--brd2);color:var(--fg)}.tb.on{border-color:var(--ac);color:var(--ac);background:var(--acD)}
+.tbsep{width:1px;height:14px;background:var(--brd)}
+.tbinfo{margin-left:auto;font-size:10px;color:var(--fg3);font-family:var(--hd)}
+.cwrap{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.cwrap canvas{display:block;position:absolute;max-width:100%;max-height:100%}
+.rpan{background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden}
+.rhead{padding:8px 10px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.rtit{font-family:var(--hd);font-size:11px;font-weight:700;color:var(--fg3);letter-spacing:1px;text-transform:uppercase}
+.rct{font-size:12px;color:var(--ac);font-weight:700;font-family:var(--hd)}
+.rscr{flex:1;overflow-y:auto;padding:5px;display:flex;flex-direction:column;gap:4px}
+.rscr::-webkit-scrollbar{width:3px}.rscr::-webkit-scrollbar-thumb{background:var(--brd2)}
+.rempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:.25;text-align:center;padding:20px}
+.rempty-i{font-size:28px;color:var(--ac)}.rempty-t{font-size:11px;color:var(--fg2);line-height:1.5;font-family:var(--hd)}
+.sc{background:var(--bg);border:1px solid var(--brd);border-radius:3px;overflow:hidden;cursor:pointer;transition:all .12s}
+.sc:hover{border-color:var(--brd2)}.sc.sel{border-color:var(--ac);box-shadow:0 0 0 1px var(--acD)}
+.sc img{width:100%;aspect-ratio:1;object-fit:contain;display:block;background:#030303;image-rendering:pixelated}
+.sc-bar{padding:5px 7px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--brd)}
+.sc-nm{font-size:10px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-family:var(--hd)}
+.sc-acts{display:flex;gap:3px}
+.sa{width:22px;height:22px;background:var(--bg);border:1px solid var(--brd);border-radius:2px;color:var(--fg3);font-size:11px;cursor:pointer;display:grid;place-items:center;transition:all .1s}
+.sa:hover{border-color:var(--fg2);color:var(--fg)}.sa.del:hover{border-color:var(--hot);color:var(--hot)}
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(50px);background:#000;border:1px solid var(--ac);border-radius:3px;padding:8px 18px;font-size:11px;color:var(--ac);font-family:var(--hd);font-weight:700;z-index:10000;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;place-items:center}
+.mbg.on{display:grid}
+.mod{background:var(--bg1);border:1px solid var(--brd);border-radius:4px;padding:18px;min-width:300px;max-width:90vw}
+.mod h3{font-family:var(--hd);font-size:15px;font-weight:700;color:var(--ac);margin-bottom:12px}
+.mrow{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.mrow label{font-size:11px;color:var(--fg2);min-width:45px;font-family:var(--hd)}
+.mrow select{flex:1;background:var(--bg);border:1px solid var(--brd);border-radius:3px;color:var(--fg);font-family:var(--mn);font-size:11px;padding:5px 7px;outline:none}
+.macts{display:flex;justify-content:flex-end;gap:6px;margin-top:12px}
+.mb{padding:7px 14px;border-radius:3px;font-family:var(--hd);font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--brd);background:var(--bg2);color:var(--fg2);transition:all .1s}
+.mb:hover{border-color:var(--fg3);color:var(--fg)}
+.mb.pri{background:var(--ac);border-color:var(--ac);color:#000}
+.exp-prev{width:100%;max-height:160px;object-fit:contain;background:#030303;border:1px solid var(--brd);border-radius:2px;margin-bottom:8px;image-rendering:pixelated}
+.mode-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:var(--hd);background:var(--acD);color:var(--ac)}
+.mob-tabs{display:none}
+@media(max-width:800px){
+  .app{grid-template-columns:1fr!important}
+  .lpan,.rpan,.ccol{display:none!important}
+  .app>[data-mob]{display:flex!important}
+  .top .tlab,.top .tsep{display:none}
+  .mob-tabs{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg);border-top:1px solid var(--brd);height:52px}
+  .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;color:var(--fg3);font-family:var(--hd);font-size:10px;font-weight:700;cursor:pointer;padding:0}
+  .mob-tab .mi{font-size:18px;line-height:1}.mob-tab.on{color:var(--ac)}
+  body{padding-bottom:52px}
+  .cwrap canvas{position:relative!important;max-width:100%;max-height:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <span class="logo">ISOFORGE</span>
+  <div class="tsep"></div>
+  <span class="tlab">ISO CITY + AI</span>
+  <div class="tright">
+    <span class="tlab">IMG</span>
+    <div class="msw">
+      <button class="on" data-m="gemini-2.5-flash-image-preview" onclick="setImgModel(this)">FLASH</button>
+      <button data-m="gemini-3-pro-image-preview" onclick="setImgModel(this)">PRO</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="lpan" data-mob>
+    <div class="lscr">
+      <div><div class="sh" onclick="const p=document.getElementById('tilePicker');p.style.display=p.style.display==='none'?'flex':'none'" style="cursor:pointer">Tiles ▸</div><div class="tile-picker" id="tilePicker" style="display:none"></div></div>
+      <div style="border-top:1px solid var(--brd);padding-top:10px">
+        <div class="sh">AI Generate <span class="mode-tag">NANO BANANA</span></div>
+        <div class="pbox"><textarea class="pta" id="aiPrompt" placeholder="describe a sprite...&#10;e.g. corner bodega at night&#10;e.g. rusty water tower"></textarea></div>
+      </div>
+      <div><div class="sh">Quick Build</div><div class="presets" id="presets"></div></div>
+      <div>
+        <div class="sh">Options</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div class="orow"><span class="olab">Style</span><select class="osel" id="optStyle"><option value="isocity">IsoCity (match tiles)</option><option value="clean">Clean Minimal</option><option value="gritty">Gritty Urban</option></select></div>
+          <div class="orow"><span class="olab">Background</span><select class="osel" id="optBg"><option value="transparent">Transparent</option><option value="black">Black</option></select></div>
+          <div class="orow"><span class="olab">#c3ff00 accent</span><select class="osel" id="optAccent"><option value="none">None</option><option value="subtle">Subtle</option><option value="strong">Strong</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="lfoot">
+      <button class="gbtn" id="genBtn" onclick="aiGenerate()">GENERATE SPRITE</button>
+      <div class="gstat" id="gstat"></div>
+    </div>
+  </div>
+  <div class="ccol">
+    <div class="cbar">
+      <button class="tb on" id="tbPlace" onclick="setTool('place')">▦ Place</button>
+      <button class="tb" id="tbErase" onclick="setTool('erase')">✕ Erase</button>
+      <div class="tbsep"></div>
+      <button class="tb" onclick="resetGrid()">⌧ Reset</button>
+      <button class="tb" onclick="exportCity()">↓ Export</button>
+      <span class="tbinfo" id="gridInfo">7×7</span>
+    </div>
+    <div class="cwrap"><canvas id="bgC"></canvas><canvas id="fgC"></canvas></div>
+  </div>
+  <div class="rpan">
+    <div class="rhead"><span class="rtit">AI Sprites</span><span class="rct" id="aiCt">0</span></div>
+    <div class="rscr" id="aiScroll"><div class="rempty" id="aiEmpty"><div class="rempty-i">◇</div><div class="rempty-t">Generate sprites<br>to start building</div></div></div>
+  </div>
+</div>
+
+<div class="mob-tabs">
+  <button class="mob-tab on" onclick="mobSwitch('lpan',this)"><span class="mi">✦</span>GEN</button>
+  <button class="mob-tab" onclick="mobSwitch('ccol',this)"><span class="mi">▦</span>MAP</button>
+  <button class="mob-tab" onclick="mobSwitch('rpan',this)"><span class="mi">◇</span>SPRITES</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="mbg" id="expModal"><div class="mod"><h3>Export Sprite</h3><canvas class="exp-prev" id="expPrev"></canvas><div class="mrow"><label>Scale</label><select id="expScale"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select></div><div class="mrow"><label>Format</label><select id="expFmt"><option value="png">PNG</option><option value="svg">SVG</option></select></div><div class="macts"><button class="mb" onclick="closeModal('expModal')">Cancel</button><button class="mb pri" onclick="doSpriteExport()">Download</button></div></div></div>
+<div class="mbg" id="cityModal"><div class="mod"><h3>Export City</h3><canvas class="exp-prev" id="cityPrev"></canvas><div class="mrow"><label>Scale</label><select id="cityScale"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select></div><div class="macts"><button class="mb" onclick="closeModal('cityModal')">Cancel</button><button class="mb pri" onclick="doCityExport()">Download PNG</button></div></div></div>
+
+<script>
+const TEX_COLS=12,TEX_ROWS=6,TEX_W=130,TEX_H=230,NTILES=7,TILE_W=128,TILE_H=64;
+const CVS_W=910,CVS_H=666,W=910,H=462;
+const texture=new Image();texture.crossOrigin='anonymous';
+texture.src='https://raw.githubusercontent.com/victorqribeiro/isocity/master/textures/01_130x66_130x230.png';
+texture.onload=()=>init();
+
+let bgC,fgC,bg,fg,map=[],tool=[0,0],isPlacing=false,previousState=null;
+let imgModel='gemini-2.5-flash-image-preview',toolMode='place';
+let aiSprites=[],selAiId=null,aiPlaced=[],useAi=false;
+
+function init(){
+  for(let i=0;i<NTILES;i++){map[i]=[];for(let j=0;j<NTILES;j++)map[i][j]=[0,0]}
+  bgC=document.getElementById('bgC');bgC.width=CVS_W;bgC.height=CVS_H;bg=bgC.getContext('2d');bg.translate(W/2,TILE_H*2);
+  fgC=document.getElementById('fgC');fgC.width=CVS_W;fgC.height=CVS_H;fg=fgC.getContext('2d');fg.translate(W/2,TILE_H*2);
+  fgC.addEventListener('mousemove',viz);fgC.addEventListener('contextmenu',e=>e.preventDefault());
+  fgC.addEventListener('mouseup',()=>{isPlacing=false});fgC.addEventListener('mousedown',click);fgC.addEventListener('touchend',handleTouch);
+  loadHash(location.hash.substring(1));drawMap();buildTilePicker();buildPresets();
+  window.addEventListener('popstate',()=>{loadHash(location.hash.substring(1));drawMap()});
+}
+function buildTilePicker(){const pk=document.getElementById('tilePicker');const sc=560/(TEX_COLS*TEX_W);
+  for(let r=0;r<TEX_ROWS;r++)for(let c=0;c<TEX_COLS;c++){const d=document.createElement('div');d.className='tp'+(r===0&&c===0?' sel':'');
+    d.style.backgroundImage=`url('${texture.src}')`;d.style.backgroundPosition=`${-(c*TEX_W*sc)}px ${-(r*TEX_H*sc)-(TEX_H*sc-44)+6}px`;
+    d.style.backgroundSize=`${1560*sc}px ${1380*sc}px`;d.addEventListener('click',()=>{tool=[r,c];useAi=false;selAiId=null;highlightAiSel();
+    document.querySelectorAll('.tp').forEach(t=>t.classList.remove('sel'));d.classList.add('sel')});pk.appendChild(d)}}
+const ToB64=u8=>btoa(String.fromCharCode.apply(null,u8));const FromB64=s=>atob(s).split('').map(c=>c.charCodeAt(0));
+function saveHash(){let c=0;const u=new Uint8Array(49);for(let i=0;i<NTILES;i++)for(let j=0;j<NTILES;j++)u[c++]=map[i][j][0]*TEX_COLS+map[i][j][1];
+  const s=ToB64(u);if(previousState!==s){history.pushState(null,null,'#'+s);previousState=s}}
+function loadHash(s){if(!s)return;try{const u=FromB64(s);let c=0;for(let i=0;i<NTILES;i++)for(let j=0;j<NTILES;j++){const t=u[c++]||0;map[i][j]=[Math.trunc(t/TEX_COLS),t%TEX_COLS]}}catch(e){}}
+function drawMap(){bg.clearRect(-W,-H,W*2,H*2);for(let i=0;i<NTILES;i++)for(let j=0;j<NTILES;j++){bg.save();bg.translate((j-i)*TILE_W/2,(i+j)*TILE_H/2);
+  bg.drawImage(texture,map[i][j][1]*TEX_W,map[i][j][0]*TEX_H,TEX_W,TEX_H,-65,-130,TEX_W,TEX_H);bg.restore()};
+  [...aiPlaced].sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy)).forEach(p=>{const sp=aiSprites.find(s=>s.id===p.sid);if(!sp?.img?.complete)return;
+  bg.save();bg.translate((p.gy-p.gx)*TILE_W/2,(p.gx+p.gy)*TILE_H/2);bg.imageSmoothingEnabled=false;bg.drawImage(sp.img,-65,-130,TEX_W,TEX_H);bg.restore()});
+  document.getElementById('gridInfo').textContent=`7×7 · ${aiPlaced.length} AI`}
+function getPos(e){const r=fgC.getBoundingClientRect();const ox=(e.clientX-r.left)*(CVS_W/r.width),oy=(e.clientY-r.top)*(CVS_H/r.height);
+  const _y=(oy-TILE_H*2)/TILE_H,_x=ox/TILE_W-NTILES/2;return{x:Math.floor(_y-_x),y:Math.floor(_x+_y)}}
+function click(e){const p=getPos(e);if(p.x<0||p.x>=NTILES||p.y<0||p.y>=NTILES)return;
+  if(toolMode==='erase'||e.which===3){map[p.x][p.y]=[0,0];aiPlaced=aiPlaced.filter(q=>!(q.gx===p.x&&q.gy===p.y));isPlacing=true;drawMap();fg.clearRect(-W,-H,W*2,H*2);saveHash();return}
+  if(useAi&&selAiId){aiPlaced=aiPlaced.filter(q=>!(q.gx===p.x&&q.gy===p.y));aiPlaced.push({gx:p.x,gy:p.y,sid:selAiId});drawMap();fg.clearRect(-W,-H,W*2,H*2)}
+  else{map[p.x][p.y]=[tool[0],tool[1]];isPlacing=true;drawMap();fg.clearRect(-W,-H,W*2,H*2);saveHash()}}
+function handleTouch(e){if(!e.changedTouches?.[0])return;const t=e.changedTouches[0];click({clientX:t.clientX,clientY:t.clientY,which:1})}
+function viz(e){if(isPlacing&&!useAi)click(e);const p=getPos(e);fg.clearRect(-W,-H,W*2,H*2);
+  if(p.x>=0&&p.x<NTILES&&p.y>=0&&p.y<NTILES){fg.save();fg.translate((p.y-p.x)*TILE_W/2,(p.x+p.y)*TILE_H/2);
+  fg.beginPath();fg.moveTo(0,0);fg.lineTo(TILE_W/2,TILE_H/2);fg.lineTo(0,TILE_H);fg.lineTo(-TILE_W/2,TILE_H/2);fg.closePath();
+  fg.fillStyle=toolMode==='erase'?'rgba(255,51,68,0.2)':'rgba(195,255,0,0.12)';fg.fill();fg.restore()}}
+function setTool(t){toolMode=t;document.querySelectorAll('.cbar .tb').forEach(b=>b.classList.remove('on'));document.getElementById('tb'+t[0].toUpperCase()+t.slice(1))?.classList.add('on')}
+function resetGrid(){for(let i=0;i<NTILES;i++)for(let j=0;j<NTILES;j++)map[i][j]=[0,0];aiPlaced=[];drawMap();saveHash();showToast('Reset')}
+function setImgModel(b){document.querySelectorAll('.msw button').forEach(x=>x.classList.remove('on'));b.classList.add('on');imgModel=b.dataset.m}
+function mobSwitch(panel,btn){document.querySelectorAll('.app>div').forEach(d=>delete d.dataset.mob);document.querySelector('.'+panel).dataset.mob='';document.querySelectorAll('.mob-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
+function closeModal(id){document.getElementById(id).classList.remove('on')}
+
+// ═══════ AI — Direct to Nano Banana, one call ═══════
+const PRESETS=['apartment block','skyscraper','brownstone','cottage','factory','warehouse','church','hospital',
+  'gas station','diner','bodega','laundromat','park bench','fountain','oak tree','water tower',
+  'taxi cab','delivery truck','bus stop','fire hydrant','hot dog cart','pedestrian','pigeon flock','dumpster'];
+const STYLES={
+  isocity:'Colorful cartoon style matching Kenney.nl isometric city asset packs. Warm friendly colors, clean simple shapes, slightly chunky proportions. Light pastel tones with stronger color accents. Soft shadows. The exact same art style as a Kenney.nl isometric city tileset — bright, clean, game-ready.',
+  clean:'Clean minimal isometric pixel art. Simple flat colors, sharp edges, no texture noise. Bright readable palette.',
+  gritty:'Gritty urban isometric art. Darker tones, weathered textures, rust stains, cracked paint, grime. Moody but still readable as a game sprite.'
+};
+const BGOPT={transparent:'on a completely transparent background. Isolated sprite, no ground plane, no shadow, no base, clean alpha edges.',black:'on a pure solid black #000000 background.'};
+const ACCENT={none:'',subtle:'Include a very small touch of bright yellow-green #c3ff00 color on one tiny detail — maybe a single lit window, a small LED light, or a thin neon trim line. Just a hint.',strong:'Use bright yellow-green #c3ff00 as a visible accent color on several details — lit windows glowing #c3ff00, neon signage in #c3ff00, antenna lights, trim lines. The #c3ff00 should be noticeable but not dominant.'};
+
+function buildPresets(){const el=document.getElementById('presets');PRESETS.forEach(p=>{const d=document.createElement('div');d.className='pre';d.textContent=p;d.onclick=()=>document.getElementById('aiPrompt').value=p;el.appendChild(d)})}
+
+const stat=msg=>document.getElementById('gstat').innerHTML=msg;
+
+async function aiGenerate(){
+  const raw=document.getElementById('aiPrompt').value.trim();
+  if(!raw){showToast('Type a description');return}
+  const style=document.getElementById('optStyle').value;
+  const bgOpt=document.getElementById('optBg').value;
+  const accent=document.getElementById('optAccent').value;
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.classList.add('ld');btn.textContent='GENERATING...';
+  stat('<span class="step">Rendering...</span>');
+
+  const prompt='Create a single isometric game sprite of: '+raw+'.\n\n'+
+    'Isometric projection at 30 degree angle, viewed from above-right. '+
+    'The object sits on a diamond-shaped isometric tile base and rises vertically above it. '+
+    STYLES[style]+' '+
+    BGOPT[bgOpt]+
+    (ACCENT[accent]?' '+ACCENT[accent]:'')+
+    ' Single centered game asset. Clean edges suitable for compositing onto an isometric grid.';
+
+  console.log('Prompt:',prompt);
+
+  try{
+    const imgEl=await puter.ai.txt2img(prompt,{model:imgModel});
+    const c=document.createElement('canvas');c.width=imgEl.naturalWidth||imgEl.width||512;c.height=imgEl.naturalHeight||imgEl.height||512;
+    c.getContext('2d').drawImage(imgEl,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/png');
+    const img=new Image();img.src=dataUrl;await new Promise(r=>{img.onload=r;img.onerror=r});
+    const id='ai_'+Date.now();const label=raw.length>20?raw.slice(0,20)+'…':raw;
+    aiSprites.push({id,img,dataUrl,label,w:c.width,h:c.height});
+    addCard(id,dataUrl,label);selAiId=id;useAi=true;highlightAiSel();
+    document.querySelectorAll('.tp').forEach(t=>t.classList.remove('sel'));
+    stat('Done!');showToast('Sprite generated');
+    if(window.innerWidth<=800){const sb=document.querySelectorAll('.mob-tab')[2];if(sb)mobSwitch('rpan',sb)}
+  }catch(err){
+    console.error('GENERATE ERROR:',err);
+    stat('<span class="err">ERROR: '+(err.message||err)+'</span>');
+    showToast('Failed — see error below button');
+  }
+  btn.disabled=false;btn.classList.remove('ld');btn.textContent='GENERATE SPRITE';
+}
+
+function addCard(id,dataUrl,label){document.getElementById('aiEmpty')?.remove();
+  const card=document.createElement('div');card.className='sc'+(id===selAiId?' sel':'');card.dataset.id=id;
+  card.onclick=()=>{selAiId=id;useAi=true;highlightAiSel();document.querySelectorAll('.tp').forEach(t=>t.classList.remove('sel'))};
+  card.innerHTML=`<img src="${dataUrl}" alt="${label}"><div class="sc-bar"><span class="sc-nm">${label}</span><div class="sc-acts"><button class="sa" title="Export" onclick="event.stopPropagation();openSpriteExport('${id}')">↓</button><button class="sa del" title="Delete" onclick="event.stopPropagation();delAi('${id}')">✕</button></div></div>`;
+  document.getElementById('aiScroll').appendChild(card);document.getElementById('aiCt').textContent=aiSprites.length}
+function highlightAiSel(){document.querySelectorAll('.sc').forEach(c=>c.classList.toggle('sel',c.dataset.id===selAiId))}
+function delAi(id){aiSprites=aiSprites.filter(s=>s.id!==id);aiPlaced=aiPlaced.filter(p=>p.sid!==id);
+  document.querySelector(`.sc[data-id="${id}"]`)?.remove();if(selAiId===id){selAiId=aiSprites.length?aiSprites.at(-1).id:null;useAi=!!selAiId}
+  highlightAiSel();document.getElementById('aiCt').textContent=aiSprites.length;
+  if(!aiSprites.length)document.getElementById('aiScroll').innerHTML='<div class="rempty" id="aiEmpty"><div class="rempty-i">◇</div><div class="rempty-t">Generate sprites<br>to start building</div></div>';drawMap()}
+
+let expTarget=null;
+function openSpriteExport(id){expTarget=aiSprites.find(s=>s.id===id);if(!expTarget)return;const p=document.getElementById('expPrev');p.width=expTarget.w;p.height=expTarget.h;p.getContext('2d').drawImage(expTarget.img,0,0);document.getElementById('expModal').classList.add('on')}
+function doSpriteExport(){if(!expTarget)return;const s=parseInt(document.getElementById('expScale').value);const f=document.getElementById('expFmt').value;const n=expTarget.label.replace(/\W/g,'_');
+  if(f==='png'){const c=document.createElement('canvas');c.width=expTarget.w*s;c.height=expTarget.h*s;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(expTarget.img,0,0,c.width,c.height);dl(c.toDataURL('image/png'),`iso-${n}-${s}x.png`)}
+  else{const c=document.createElement('canvas');c.width=expTarget.w;c.height=expTarget.h;c.getContext('2d').drawImage(expTarget.img,0,0);const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let r='';
+    for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){const i=(y*c.width+x)*4;if(d[i+3]<10)continue;r+=`<rect x="${x*s}" y="${y*s}" width="${s}" height="${s}" fill="rgb(${d[i]},${d[i+1]},${d[i+2]})"${d[i+3]<255?` opacity="${(d[i+3]/255).toFixed(2)}"`:''}/>`}
+    dl(URL.createObjectURL(new Blob([`<svg xmlns="http://www.w3.org/2000/svg" width="${c.width*s}" height="${c.height*s}" shape-rendering="crispEdges">${r}</svg>`],{type:'image/svg+xml'})),`iso-${n}-${s}x.svg`)}
+  showToast('Exported');closeModal('expModal');expTarget=null}
+function exportCity(){const p=document.getElementById('cityPrev');renderCity(p,1);document.getElementById('cityModal').classList.add('on')}
+function renderCity(cv,s){cv.width=CVS_W*s;cv.height=CVS_H*s;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;c.scale(s,s);c.translate(W/2,TILE_H*2);
+  for(let i=0;i<NTILES;i++)for(let j=0;j<NTILES;j++){c.save();c.translate((j-i)*TILE_W/2,(i+j)*TILE_H/2);c.drawImage(texture,map[i][j][1]*TEX_W,map[i][j][0]*TEX_H,TEX_W,TEX_H,-65,-130,TEX_W,TEX_H);c.restore()};
+  [...aiPlaced].sort((a,b)=>(a.gx+a.gy)-(b.gx+b.gy)).forEach(p=>{const sp=aiSprites.find(s=>s.id===p.sid);if(!sp?.img?.complete)return;c.save();c.translate((p.gy-p.gx)*TILE_W/2,(p.gx+p.gy)*TILE_H/2);c.imageSmoothingEnabled=false;c.drawImage(sp.img,-65,-130,TEX_W,TEX_H);c.restore()})}
+function doCityExport(){const s=parseInt(document.getElementById('cityScale').value);const c=document.createElement('canvas');renderCity(c,s);dl(c.toDataURL('image/png'),`isoforge-city-${s}x.png`);showToast('Exported');closeModal('cityModal')}
+function dl(h,n){const a=document.createElement('a');a.download=n;a.href=h;a.click()}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2500)}
+</script>
+</body>
+</html>
