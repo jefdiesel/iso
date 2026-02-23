@@ -66,12 +66,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--mn);height:100vh;hei
 .sc-img img{image-rendering:auto;transition:transform .15s}
 .sc-info{padding:8px;border-top:1px solid var(--brd)}
 .sc-nm{font-size:11px;color:var(--fg2);font-family:var(--hd);font-weight:500;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sc-scale{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.sc-scale label{font-size:9px;color:var(--fg3);font-family:var(--hd);font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.sc-scale input[type=range]{flex:1;height:3px;-webkit-appearance:none;appearance:none;background:var(--brd);border-radius:2px;outline:none}
-.sc-scale input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid #000}
-.sc-scale input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid #000}
-.sc-scale span{font-size:10px;color:var(--ac);font-family:var(--mn);font-weight:700;min-width:32px;text-align:right}
 .sc-dim{font-size:9px;color:var(--fg3);font-family:var(--mn);margin-bottom:6px}
 .sc-acts{display:flex;gap:4px}
 .sa{height:26px;background:var(--bg);border:1px solid var(--brd);border-radius:3px;color:var(--fg3);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;padding:0 8px;transition:all .1s;font-family:var(--hd);font-weight:500}
@@ -127,7 +121,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--mn);height:100vh;hei
         <div class="sh">Options</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div class="orow"><span class="olab">Style</span><select class="osel" id="optStyle"><option value="isocity">IsoCity (match tiles)</option><option value="clean">Clean Minimal</option><option value="gritty">Gritty Urban</option></select></div>
-          <div class="orow"><span class="olab">Size</span><select class="osel" id="optSize"><option value="130x230">130×230 (tile size)</option><option value="256x256">256×256</option><option value="512x512">512×512</option></select></div>
           <div class="orow"><span class="olab">Background</span><select class="osel" id="optBg"><option value="transparent">Transparent</option><option value="black">Black</option></select></div>
           <div class="orow"><span class="olab">#c3ff00 accent</span><select class="osel" id="optAccent"><option value="none">None</option><option value="subtle">Subtle</option><option value="strong">Strong</option></select></div>
         </div>
@@ -178,11 +171,24 @@ const STYLES={
   clean:'Clean minimal isometric art. Simple flat colors, sharp edges, no texture noise. Bright readable palette.',
   gritty:'Gritty urban isometric art. Darker tones, weathered textures, rust stains, cracked paint, grime. Moody but still readable as a game sprite.'
 };
-const SIZES={
-  '130x230':'The sprite should be designed to fit a 130x230 pixel frame sitting on a 128x64 diamond isometric tile base.',
-  '256x256':'The sprite should be designed as a 256x256 square asset.',
-  '512x512':'The sprite should be designed as a detailed 512x512 square asset.'
-};
+// Auto-sizing: map objects to proportional tile dimensions
+// Base tile = 130×230. Objects scale relative to that.
+const SIZE_MAP=[
+  {keys:['skyscraper','tower','highrise','high-rise','crane','cathedral','monument','obelisk','lighthouse'],w:130,h:460},
+  {keys:['apartment','office','factory','warehouse','church','hospital','hotel','parking garage','mall'],w:130,h:345},
+  {keys:['brownstone','house','cottage','diner','bodega','laundromat','gas station','store','shop','bar','pub','restaurant','garage','barn'],w:130,h:230},
+  {keys:['truck','bus','van','ambulance','fire engine','limo'],w:150,h:180},
+  {keys:['taxi','cab','car','sedan','coupe','suv','police'],w:130,h:150},
+  {keys:['tree','oak','pine','palm','willow','fountain','statue','water tower'],w:130,h:280},
+  {keys:['bench','hydrant','mailbox','trash','dumpster','cart','stand','newsstand','phone booth','booth','sign','lamp','streetlight'],w:80,h:140},
+  {keys:['person','pedestrian','cyclist','dog','cat','pigeon','bird','flock'],w:65,h:130},
+];
+function getAutoSize(label){
+  const l=label.toLowerCase();
+  for(const s of SIZE_MAP) for(const k of s.keys) if(l.includes(k)) return {w:s.w,h:s.h};
+  return {w:130,h:230}; // default = standard tile
+}
+
 const BGOPT={transparent:'on a completely transparent background. Isolated sprite, no ground plane, no shadow, clean alpha edges.',black:'on a pure solid black #000000 background.'};
 const ACCENT={none:'',subtle:'Include a very small touch of bright yellow-green #c3ff00 color on one tiny detail — maybe a single lit window, a small LED light, or a thin neon trim line. Just a hint.',strong:'Use bright yellow-green #c3ff00 as a visible accent color on several details — lit windows glowing #c3ff00, neon signage in #c3ff00, antenna lights, trim lines. The #c3ff00 should be noticeable but not dominant.'};
 
@@ -191,7 +197,6 @@ function setImgModel(b){document.querySelectorAll('.msw button').forEach(x=>x.cl
 async function switchAccount(){
   if(!confirm('Sign out of Puter and clear all cached login data?\n\nUnsaved sprites will be lost!'))return;
   try{await puter.auth.signOut()}catch(e){}
-  // Nuclear: clear all Puter auth from storage
   try{
     Object.keys(localStorage).forEach(k=>{if(k.toLowerCase().includes('puter')||k.toLowerCase().includes('auth'))localStorage.removeItem(k)});
     Object.keys(sessionStorage).forEach(k=>{if(k.toLowerCase().includes('puter')||k.toLowerCase().includes('auth'))sessionStorage.removeItem(k)});
@@ -211,33 +216,51 @@ async function aiGenerate(){
   const raw=document.getElementById('aiPrompt').value.trim();
   if(!raw){showToast('Type a description');return}
   const style=document.getElementById('optStyle').value;
-  const size=document.getElementById('optSize').value;
   const bgOpt=document.getElementById('optBg').value;
   const accent=document.getElementById('optAccent').value;
   const btn=document.getElementById('genBtn');
   btn.disabled=true;btn.classList.add('ld');btn.textContent='GENERATING...';
   stat('<span class="step">Rendering...</span>');
 
+  const tgt=getAutoSize(raw);
+
   const prompt='Create a single isometric game sprite of: '+raw+'.\n\n'+
     'Isometric projection at 30 degree angle, viewed from above-right. '+
     'The object sits on a diamond-shaped isometric tile base and rises vertically above it. '+
-    STYLES[style]+' '+SIZES[size]+' '+BGOPT[bgOpt]+
+    'IMPORTANT: The proportions should be realistic — a skyscraper should be tall and narrow, a fire hydrant should be small and squat, a house should be medium height. The object should fill the frame with correct proportions for what it is. '+
+    STYLES[style]+' '+BGOPT[bgOpt]+
     (ACCENT[accent]?' '+ACCENT[accent]:'')+
     ' Single centered game asset. Clean edges suitable for compositing onto an isometric grid.';
 
-  console.log('Prompt:',prompt);
+  console.log('Prompt:',prompt,'→ target:',tgt.w+'×'+tgt.h);
 
   try{
     const imgEl=await puter.ai.txt2img(prompt,{model:imgModel});
-    const c=document.createElement('canvas');c.width=imgEl.naturalWidth||imgEl.width||512;c.height=imgEl.naturalHeight||imgEl.height||512;
-    c.getContext('2d').drawImage(imgEl,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/png');
+
+    // Get raw output
+    const rawC=document.createElement('canvas');
+    rawC.width=imgEl.naturalWidth||imgEl.width||512;
+    rawC.height=imgEl.naturalHeight||imgEl.height||512;
+    rawC.getContext('2d').drawImage(imgEl,0,0,rawC.width,rawC.height);
+
+    // Resize to target tile dimensions, fitting content and anchoring to bottom
+    const c=document.createElement('canvas');c.width=tgt.w;c.height=tgt.h;
+    const ctx=c.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
+    const srcR=rawC.width/rawC.height, tgtR=tgt.w/tgt.h;
+    let dw,dh,dx,dy;
+    if(srcR>tgtR){dw=tgt.w;dh=tgt.w/srcR}else{dh=tgt.h;dw=tgt.h*srcR}
+    dx=(tgt.w-dw)/2; dy=tgt.h-dh; // anchor bottom
+    ctx.drawImage(rawC,0,0,rawC.width,rawC.height,dx,dy,dw,dh);
+
+    const dataUrl=c.toDataURL('image/png');
     const img=new Image();img.src=dataUrl;
     await new Promise(r=>{img.onload=r;img.onerror=r});
     const id='ai_'+Date.now();const label=raw.length>24?raw.slice(0,24)+'…':raw;
-    const sp={id,img,dataUrl,label,w:c.width,h:c.height,scale:100};
+    const sp={id,img,dataUrl,label,w:tgt.w,h:tgt.h};
     aiSprites.push(sp);
     addCard(sp);
-    stat('Done — '+c.width+'×'+c.height);showToast('Sprite generated');
+    stat('Done — '+tgt.w+'×'+tgt.h);showToast('Sprite generated');
     if(window.innerWidth<=800){const sb=document.querySelectorAll('.mob-tab')[1];if(sb)mobSwitch('rpan',sb)}
   }catch(err){
     console.error('GENERATE ERROR:',err);
@@ -251,34 +274,18 @@ function addCard(sp){
   document.getElementById('aiEmpty')?.remove();
   const card=document.createElement('div');card.className='sc';card.dataset.id=sp.id;
   card.innerHTML=`
-    <div class="sc-img"><img id="img-${sp.id}" src="${sp.dataUrl}" alt="${sp.label}" style="width:${sp.scale}%;height:${sp.scale}%;object-fit:contain"></div>
+    <div class="sc-img"><img src="${sp.dataUrl}" alt="${sp.label}" style="object-fit:contain;width:100%;height:100%"></div>
     <div class="sc-info">
       <div class="sc-nm">${sp.label}</div>
-      <div class="sc-scale">
-        <label>Scale</label>
-        <input type="range" min="10" max="200" value="${sp.scale}" oninput="setScale('${sp.id}',this.value)">
-        <span id="sv-${sp.id}">${sp.scale}%</span>
-      </div>
-      <div class="sc-dim" id="dim-${sp.id}">${sp.w}×${sp.h} → ${Math.round(sp.w*sp.scale/100)}×${Math.round(sp.h*sp.scale/100)}</div>
+      <div class="sc-dim">${sp.w}×${sp.h}</div>
       <div class="sc-acts">
         <button class="sa" onclick="saveToCloud('${sp.id}')">☁ Save</button>
         <button class="sa" onclick="dlSprite('${sp.id}')">↓ PNG</button>
-        <button class="sa" onclick="dlSpriteScaled('${sp.id}')">↓ Scaled</button>
         <button class="sa del" onclick="delAi('${sp.id}')">✕</button>
       </div>
     </div>`;
   document.getElementById('aiScroll').appendChild(card);
   document.getElementById('aiCt').textContent=aiSprites.length;
-}
-
-function setScale(id,val){
-  const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
-  sp.scale=parseInt(val);
-  const img=document.getElementById('img-'+id);
-  if(img){img.style.width=val+'%';img.style.height=val+'%'}
-  const sv=document.getElementById('sv-'+id);if(sv)sv.textContent=val+'%';
-  const dim=document.getElementById('dim-'+id);
-  if(dim)dim.textContent=sp.w+'×'+sp.h+' → '+Math.round(sp.w*sp.scale/100)+'×'+Math.round(sp.h*sp.scale/100);
 }
 
 function delAi(id){
@@ -293,18 +300,8 @@ function dl(h,n){const a=document.createElement('a');a.download=n;a.href=h;a.cli
 
 function dlSprite(id){
   const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
-  dl(sp.dataUrl,'isoforge-'+sp.label.replace(/[^a-z0-9]/gi,'_')+'.png');
-  showToast('Downloaded original');
-}
-
-function dlSpriteScaled(id){
-  const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
-  const nw=Math.round(sp.w*sp.scale/100),nh=Math.round(sp.h*sp.scale/100);
-  const c=document.createElement('canvas');c.width=nw;c.height=nh;
-  const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(sp.img,0,0,nw,nh);
-  dl(c.toDataURL('image/png'),'isoforge-'+sp.label.replace(/[^a-z0-9]/gi,'_')+'-'+nw+'x'+nh+'.png');
-  showToast('Downloaded '+nw+'×'+nh);
+  dl(sp.dataUrl,'isoforge-'+sp.label.replace(/[^a-z0-9]/gi,'_')+'-'+sp.w+'x'+sp.h+'.png');
+  showToast('Downloaded');
 }
 
 function dlAllSprites(){
@@ -325,7 +322,7 @@ async function saveToCloud(id){
     const name=sp.label.replace(/[^a-z0-9]/gi,'_')+'_'+Date.now();
     const resp=await fetch(sp.dataUrl);const blob=await resp.blob();
     await puter.fs.write(CLOUD_DIR+'/'+name+'.png',blob);
-    const meta=JSON.stringify({label:sp.label,scale:sp.scale,w:sp.w,h:sp.h});
+    const meta=JSON.stringify({label:sp.label,w:sp.w,h:sp.h});
     await puter.fs.write(CLOUD_DIR+'/'+name+'.json',new Blob([meta],{type:'application/json'}));
     stat('Saved!');showToast('☁ '+sp.label);
   }catch(err){
