@@ -189,9 +189,16 @@ const ACCENT={none:'',subtle:'Include a very small touch of bright yellow-green 
 function setImgModel(b){document.querySelectorAll('.msw button').forEach(x=>x.classList.remove('on'));b.classList.add('on');imgModel=b.dataset.m}
 
 async function switchAccount(){
-  if(!confirm('Sign out of Puter? You can sign in with a new account to get another $0.50 free.\n\nUnsaved sprites will be lost!'))return;
+  if(!confirm('Sign out of Puter and clear all cached login data?\n\nUnsaved sprites will be lost!'))return;
   try{await puter.auth.signOut()}catch(e){}
-  showToast('Signed out — generate to sign into new account');
+  // Nuclear: clear all Puter auth from storage
+  try{
+    Object.keys(localStorage).forEach(k=>{if(k.toLowerCase().includes('puter')||k.toLowerCase().includes('auth'))localStorage.removeItem(k)});
+    Object.keys(sessionStorage).forEach(k=>{if(k.toLowerCase().includes('puter')||k.toLowerCase().includes('auth'))sessionStorage.removeItem(k)});
+    document.cookie.split(';').forEach(c=>{const name=c.split('=')[0].trim();document.cookie=name+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'});
+  }catch(e){}
+  showToast('Cleared — reloading...');
+  setTimeout(()=>location.reload(),500);
 }
 function mobSwitch(panel,btn){document.querySelectorAll('.app>div').forEach(d=>delete d.dataset.mob);document.querySelector('.'+panel).dataset.mob='';document.querySelectorAll('.mob-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
 
