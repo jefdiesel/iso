@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>ISOFORGE</title>
+<script src="https://js.puter.com/v2/"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg1:#080808;--bg2:#111;--brd:#1e1e1e;--brd2:#2e2e2e;--fg:#ccc;--fg2:#777;--fg3:#444;--ac:#c3ff00;--acD:#c3ff0020;--hot:#ff3344;--hd:'Space Grotesk',sans-serif;--mn:'IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:9999}
+body{background:var(--bg);color:var(--fg);font-family:var(--mn);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+.top{height:40px;background:var(--bg);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0;z-index:10}
+.logo{font-family:var(--hd);font-size:16px;font-weight:700;color:var(--ac);letter-spacing:2px}
+.tsep{width:1px;height:16px;background:var(--brd)}
+.tlab{font-size:10px;color:var(--fg3);letter-spacing:1px;font-family:var(--hd)}
+.tright{margin-left:auto;display:flex;align-items:center;gap:6px}
+.msw{display:flex;border:1px solid var(--brd);border-radius:3px;overflow:hidden}
+.msw button{background:transparent;border:none;color:var(--fg3);font-family:var(--hd);font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;transition:all .12s}
+.msw button.on{background:var(--ac);color:#000}
+
+.app{flex:1;display:grid;grid-template-columns:300px 1fr;overflow:hidden}
+
+.lpan{background:var(--bg1);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden}
+.lscr{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:14px}
+.lscr::-webkit-scrollbar{width:3px}.lscr::-webkit-scrollbar-thumb{background:var(--brd2)}
+.sh{font-family:var(--hd);font-size:11px;font-weight:700;color:var(--fg3);letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:6px;text-transform:uppercase}
+.sh::after{content:'';flex:1;height:1px;background:var(--brd)}
+.pbox{background:var(--bg);border:1px solid var(--brd);border-radius:3px;padding:2px}
+.pbox:focus-within{border-color:var(--ac);box-shadow:0 0 0 2px var(--acD)}
+.pta{width:100%;min-height:70px;background:transparent;border:none;color:var(--fg);font-family:var(--mn);font-size:12px;padding:8px;resize:vertical;outline:none;line-height:1.5}
+.pta::placeholder{color:var(--fg3)}
+.presets{display:flex;flex-wrap:wrap;gap:3px}
+.pre{background:var(--bg);border:1px solid var(--brd);border-radius:3px;padding:4px 8px;font-family:var(--hd);font-size:10px;font-weight:500;color:var(--fg2);cursor:pointer;transition:all .1s;white-space:nowrap}
+.pre:hover{border-color:var(--ac);color:var(--ac);background:var(--acD)}
+.orow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.olab{font-size:11px;color:var(--fg2);font-family:var(--hd);font-weight:500;white-space:nowrap}
+.osel{background:var(--bg);border:1px solid var(--brd);border-radius:3px;color:var(--fg);font-family:var(--mn);font-size:11px;padding:3px 6px;outline:none;cursor:pointer;flex:1;min-width:0}
+.osel:focus{border-color:var(--ac)}.osel option{background:var(--bg)}
+.lfoot{padding:8px 12px;border-top:1px solid var(--brd);background:var(--bg1)}
+.gbtn{width:100%;padding:12px;background:var(--ac);border:none;border-radius:3px;color:#000;font-family:var(--hd);font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;position:relative;overflow:hidden;transition:all .15s}
+.gbtn:hover:not(:disabled){box-shadow:0 0 20px var(--acD)}
+.gbtn:disabled{opacity:.5;cursor:wait}
+.gbtn.ld{background:var(--bg);border:1px solid var(--ac);color:var(--ac)}
+.gbtn.ld::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--acD),transparent);animation:sw 1.2s infinite}
+@keyframes sw{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.gstat{font-size:10px;color:var(--fg3);margin-top:5px;min-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mn)}
+.gstat .step{color:var(--ac);font-weight:700}
+.gstat .err{color:var(--hot)}
+
+/* RIGHT — GALLERY */
+.rpan{background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.rhead{padding:10px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;background:var(--bg1)}
+.rtit{font-family:var(--hd);font-size:12px;font-weight:700;color:var(--fg3);letter-spacing:1px;text-transform:uppercase}
+.rct{font-size:13px;color:var(--ac);font-weight:700;font-family:var(--hd)}
+.rscr{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;align-content:start}
+.rscr::-webkit-scrollbar{width:3px}.rscr::-webkit-scrollbar-thumb{background:var(--brd2)}
+.rempty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:.25;text-align:center;padding:40px}
+.rempty-i{font-size:36px;color:var(--ac)}.rempty-t{font-size:12px;color:var(--fg2);line-height:1.5;font-family:var(--hd)}
+
+/* SPRITE CARD */
+.sc{background:var(--bg1);border:1px solid var(--brd);border-radius:4px;overflow:hidden;transition:all .12s}
+.sc:hover{border-color:var(--brd2)}
+.sc-img{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#030303;overflow:hidden}
+.sc-img img{image-rendering:auto;transition:transform .15s}
+.sc-info{padding:8px;border-top:1px solid var(--brd)}
+.sc-nm{font-size:11px;color:var(--fg2);font-family:var(--hd);font-weight:500;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-scale{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sc-scale label{font-size:9px;color:var(--fg3);font-family:var(--hd);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.sc-scale input[type=range]{flex:1;height:3px;-webkit-appearance:none;appearance:none;background:var(--brd);border-radius:2px;outline:none}
+.sc-scale input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid #000}
+.sc-scale input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;border:2px solid #000}
+.sc-scale span{font-size:10px;color:var(--ac);font-family:var(--mn);font-weight:700;min-width:32px;text-align:right}
+.sc-dim{font-size:9px;color:var(--fg3);font-family:var(--mn);margin-bottom:6px}
+.sc-acts{display:flex;gap:4px}
+.sa{height:26px;background:var(--bg);border:1px solid var(--brd);border-radius:3px;color:var(--fg3);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;padding:0 8px;transition:all .1s;font-family:var(--hd);font-weight:500}
+.sa:hover{border-color:var(--fg2);color:var(--fg)}.sa.del:hover{border-color:var(--hot);color:var(--hot)}
+.rfoot{padding:8px 14px;border-top:1px solid var(--brd);display:flex;gap:6px;background:var(--bg1)}
+.mb{padding:8px 14px;border-radius:3px;font-family:var(--hd);font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--brd);background:var(--bg2);color:var(--fg2);transition:all .1s;flex:1;text-align:center}
+.mb:hover{border-color:var(--fg3);color:var(--fg)}
+
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(50px);background:#000;border:1px solid var(--ac);border-radius:3px;padding:8px 18px;font-size:11px;color:var(--ac);font-family:var(--hd);font-weight:700;z-index:10000;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.mode-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:var(--hd);background:var(--acD);color:var(--ac)}
+
+.mob-tabs{display:none}
+@media(max-width:800px){
+  .app{grid-template-columns:1fr!important}
+  .lpan,.rpan{display:none!important}
+  .app>[data-mob]{display:flex!important}
+  .top .tlab,.top .tsep{display:none}
+  .mob-tabs{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg);border-top:1px solid var(--brd);height:52px}
+  .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;color:var(--fg3);font-family:var(--hd);font-size:10px;font-weight:700;cursor:pointer;padding:0}
+  .mob-tab .mi{font-size:18px;line-height:1}.mob-tab.on{color:var(--ac)}
+  body{padding-bottom:52px}
+  .rscr{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <span class="logo">ISOFORGE</span>
+  <div class="tsep"></div>
+  <span class="tlab">SPRITE GENERATOR</span>
+  <div class="tright">
+    <span class="tlab">IMG</span>
+    <div class="msw">
+      <button class="on" data-m="gemini-2.5-flash-image-preview" onclick="setImgModel(this)">FLASH</button>
+      <button data-m="gemini-3-pro-image-preview" onclick="setImgModel(this)">PRO</button>
+    </div>
+    <div class="tsep"></div>
+    <button onclick="switchAccount()" style="background:transparent;border:1px solid var(--brd);border-radius:3px;color:var(--fg3);font-family:var(--hd);font-size:9px;font-weight:700;padding:4px 8px;cursor:pointer;transition:all .12s" onmouseenter="this.style.borderColor='var(--ac)';this.style.color='var(--ac)'" onmouseleave="this.style.borderColor='var(--brd)';this.style.color='var(--fg3)'">⟳ ACCT</button>
+  </div>
+</div>
+
+<div class="app">
+  <div class="lpan" data-mob>
+    <div class="lscr">
+      <div>
+        <div class="sh">Generate <span class="mode-tag">NANO BANANA</span></div>
+        <div class="pbox"><textarea class="pta" id="aiPrompt" placeholder="describe a sprite...&#10;e.g. corner bodega at night&#10;e.g. rusty water tower&#10;e.g. flamingo delivery truck"></textarea></div>
+      </div>
+      <div><div class="sh">Quick Build</div><div class="presets" id="presets"></div></div>
+      <div>
+        <div class="sh">Options</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="orow"><span class="olab">Style</span><select class="osel" id="optStyle"><option value="isocity">IsoCity (match tiles)</option><option value="clean">Clean Minimal</option><option value="gritty">Gritty Urban</option></select></div>
+          <div class="orow"><span class="olab">Size</span><select class="osel" id="optSize"><option value="130x230">130×230 (tile size)</option><option value="256x256">256×256</option><option value="512x512">512×512</option></select></div>
+          <div class="orow"><span class="olab">Background</span><select class="osel" id="optBg"><option value="transparent">Transparent</option><option value="black">Black</option></select></div>
+          <div class="orow"><span class="olab">#c3ff00 accent</span><select class="osel" id="optAccent"><option value="none">None</option><option value="subtle">Subtle</option><option value="strong">Strong</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="lfoot">
+      <button class="gbtn" id="genBtn" onclick="aiGenerate()">GENERATE SPRITE</button>
+      <div class="gstat" id="gstat"></div>
+    </div>
+  </div>
+
+  <div class="rpan" data-mob style="display:flex">
+    <div class="rhead">
+      <span class="rtit">Sprites</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="sa" onclick="loadFromCloud()" style="font-size:9px">☁ Load</button>
+        <span class="rct" id="aiCt">0</span>
+      </div>
+    </div>
+    <div class="rscr" id="aiScroll">
+      <div class="rempty" id="aiEmpty"><div class="rempty-i">◇</div><div class="rempty-t">Generate sprites<br>to start building</div></div>
+    </div>
+    <div class="rfoot">
+      <button class="mb" onclick="saveAllToCloud()">☁ Save All</button>
+      <button class="mb" onclick="dlAllSprites()">↓ Download All</button>
+    </div>
+  </div>
+</div>
+
+<div class="mob-tabs">
+  <button class="mob-tab on" onclick="mobSwitch('lpan',this)"><span class="mi">✦</span>GEN</button>
+  <button class="mob-tab" onclick="mobSwitch('rpan',this)"><span class="mi">◇</span>SPRITES</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let imgModel='gemini-2.5-flash-image-preview';
+let aiSprites=[];
+
+const PRESETS=['apartment block','skyscraper','brownstone','cottage','factory','warehouse','church','hospital',
+  'gas station','diner','bodega','laundromat','park bench','fountain','oak tree','water tower',
+  'taxi cab','delivery truck','bus stop','fire hydrant','hot dog cart','pedestrian','pigeon flock','dumpster',
+  'phone booth','mailbox','newsstand','subway entrance','rooftop garden','construction crane'];
+
+const STYLES={
+  isocity:'Colorful cartoon style matching Kenney.nl isometric city asset packs. Warm friendly colors, clean simple shapes, slightly chunky proportions. Light pastel tones with stronger color accents. Soft shadows. The exact same art style as a Kenney.nl isometric city tileset — bright, clean, game-ready.',
+  clean:'Clean minimal isometric art. Simple flat colors, sharp edges, no texture noise. Bright readable palette.',
+  gritty:'Gritty urban isometric art. Darker tones, weathered textures, rust stains, cracked paint, grime. Moody but still readable as a game sprite.'
+};
+const SIZES={
+  '130x230':'The sprite should be designed to fit a 130x230 pixel frame sitting on a 128x64 diamond isometric tile base.',
+  '256x256':'The sprite should be designed as a 256x256 square asset.',
+  '512x512':'The sprite should be designed as a detailed 512x512 square asset.'
+};
+const BGOPT={transparent:'on a completely transparent background. Isolated sprite, no ground plane, no shadow, clean alpha edges.',black:'on a pure solid black #000000 background.'};
+const ACCENT={none:'',subtle:'Include a very small touch of bright yellow-green #c3ff00 color on one tiny detail — maybe a single lit window, a small LED light, or a thin neon trim line. Just a hint.',strong:'Use bright yellow-green #c3ff00 as a visible accent color on several details — lit windows glowing #c3ff00, neon signage in #c3ff00, antenna lights, trim lines. The #c3ff00 should be noticeable but not dominant.'};
+
+function setImgModel(b){document.querySelectorAll('.msw button').forEach(x=>x.classList.remove('on'));b.classList.add('on');imgModel=b.dataset.m}
+
+async function switchAccount(){
+  if(!confirm('Sign out of Puter? You can sign in with a new account to get another $0.50 free.\n\nUnsaved sprites will be lost!'))return;
+  try{await puter.auth.signOut()}catch(e){}
+  showToast('Signed out — generate to sign into new account');
+}
+function mobSwitch(panel,btn){document.querySelectorAll('.app>div').forEach(d=>delete d.dataset.mob);document.querySelector('.'+panel).dataset.mob='';document.querySelectorAll('.mob-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
+
+function buildPresets(){const el=document.getElementById('presets');PRESETS.forEach(p=>{const d=document.createElement('div');d.className='pre';d.textContent=p;d.onclick=()=>document.getElementById('aiPrompt').value=p;el.appendChild(d)})}
+buildPresets();
+
+const stat=msg=>document.getElementById('gstat').innerHTML=msg;
+
+async function aiGenerate(){
+  const raw=document.getElementById('aiPrompt').value.trim();
+  if(!raw){showToast('Type a description');return}
+  const style=document.getElementById('optStyle').value;
+  const size=document.getElementById('optSize').value;
+  const bgOpt=document.getElementById('optBg').value;
+  const accent=document.getElementById('optAccent').value;
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.classList.add('ld');btn.textContent='GENERATING...';
+  stat('<span class="step">Rendering...</span>');
+
+  const prompt='Create a single isometric game sprite of: '+raw+'.\n\n'+
+    'Isometric projection at 30 degree angle, viewed from above-right. '+
+    'The object sits on a diamond-shaped isometric tile base and rises vertically above it. '+
+    STYLES[style]+' '+SIZES[size]+' '+BGOPT[bgOpt]+
+    (ACCENT[accent]?' '+ACCENT[accent]:'')+
+    ' Single centered game asset. Clean edges suitable for compositing onto an isometric grid.';
+
+  console.log('Prompt:',prompt);
+
+  try{
+    const imgEl=await puter.ai.txt2img(prompt,{model:imgModel});
+    const c=document.createElement('canvas');c.width=imgEl.naturalWidth||imgEl.width||512;c.height=imgEl.naturalHeight||imgEl.height||512;
+    c.getContext('2d').drawImage(imgEl,0,0,c.width,c.height);const dataUrl=c.toDataURL('image/png');
+    const img=new Image();img.src=dataUrl;
+    await new Promise(r=>{img.onload=r;img.onerror=r});
+    const id='ai_'+Date.now();const label=raw.length>24?raw.slice(0,24)+'…':raw;
+    const sp={id,img,dataUrl,label,w:c.width,h:c.height,scale:100};
+    aiSprites.push(sp);
+    addCard(sp);
+    stat('Done — '+c.width+'×'+c.height);showToast('Sprite generated');
+    if(window.innerWidth<=800){const sb=document.querySelectorAll('.mob-tab')[1];if(sb)mobSwitch('rpan',sb)}
+  }catch(err){
+    console.error('GENERATE ERROR:',err);
+    stat('<span class="err">ERROR: '+(err.message||err)+'</span>');
+    showToast('Failed — see error below button');
+  }
+  btn.disabled=false;btn.classList.remove('ld');btn.textContent='GENERATE SPRITE';
+}
+
+function addCard(sp){
+  document.getElementById('aiEmpty')?.remove();
+  const card=document.createElement('div');card.className='sc';card.dataset.id=sp.id;
+  card.innerHTML=`
+    <div class="sc-img"><img id="img-${sp.id}" src="${sp.dataUrl}" alt="${sp.label}" style="width:${sp.scale}%;height:${sp.scale}%;object-fit:contain"></div>
+    <div class="sc-info">
+      <div class="sc-nm">${sp.label}</div>
+      <div class="sc-scale">
+        <label>Scale</label>
+        <input type="range" min="10" max="200" value="${sp.scale}" oninput="setScale('${sp.id}',this.value)">
+        <span id="sv-${sp.id}">${sp.scale}%</span>
+      </div>
+      <div class="sc-dim" id="dim-${sp.id}">${sp.w}×${sp.h} → ${Math.round(sp.w*sp.scale/100)}×${Math.round(sp.h*sp.scale/100)}</div>
+      <div class="sc-acts">
+        <button class="sa" onclick="saveToCloud('${sp.id}')">☁ Save</button>
+        <button class="sa" onclick="dlSprite('${sp.id}')">↓ PNG</button>
+        <button class="sa" onclick="dlSpriteScaled('${sp.id}')">↓ Scaled</button>
+        <button class="sa del" onclick="delAi('${sp.id}')">✕</button>
+      </div>
+    </div>`;
+  document.getElementById('aiScroll').appendChild(card);
+  document.getElementById('aiCt').textContent=aiSprites.length;
+}
+
+function setScale(id,val){
+  const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
+  sp.scale=parseInt(val);
+  const img=document.getElementById('img-'+id);
+  if(img){img.style.width=val+'%';img.style.height=val+'%'}
+  const sv=document.getElementById('sv-'+id);if(sv)sv.textContent=val+'%';
+  const dim=document.getElementById('dim-'+id);
+  if(dim)dim.textContent=sp.w+'×'+sp.h+' → '+Math.round(sp.w*sp.scale/100)+'×'+Math.round(sp.h*sp.scale/100);
+}
+
+function delAi(id){
+  aiSprites=aiSprites.filter(s=>s.id!==id);
+  document.querySelector(`.sc[data-id="${id}"]`)?.remove();
+  document.getElementById('aiCt').textContent=aiSprites.length;
+  if(!aiSprites.length)document.getElementById('aiScroll').innerHTML='<div class="rempty" id="aiEmpty"><div class="rempty-i">◇</div><div class="rempty-t">Generate sprites<br>to start building</div></div>';
+}
+
+// ═══════ DOWNLOADS ═══════
+function dl(h,n){const a=document.createElement('a');a.download=n;a.href=h;a.click()}
+
+function dlSprite(id){
+  const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
+  dl(sp.dataUrl,'isoforge-'+sp.label.replace(/[^a-z0-9]/gi,'_')+'.png');
+  showToast('Downloaded original');
+}
+
+function dlSpriteScaled(id){
+  const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
+  const nw=Math.round(sp.w*sp.scale/100),nh=Math.round(sp.h*sp.scale/100);
+  const c=document.createElement('canvas');c.width=nw;c.height=nh;
+  const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(sp.img,0,0,nw,nh);
+  dl(c.toDataURL('image/png'),'isoforge-'+sp.label.replace(/[^a-z0-9]/gi,'_')+'-'+nw+'x'+nh+'.png');
+  showToast('Downloaded '+nw+'×'+nh);
+}
+
+function dlAllSprites(){
+  if(!aiSprites.length){showToast('No sprites');return}
+  aiSprites.forEach((sp,i)=>{setTimeout(()=>dlSprite(sp.id),i*300)});
+  showToast('Downloading '+aiSprites.length);
+}
+
+// ═══════ PUTER CLOUD ═══════
+const CLOUD_DIR='/isoforge-sprites';
+async function ensureDir(){try{await puter.fs.stat(CLOUD_DIR)}catch(e){await puter.fs.mkdir(CLOUD_DIR)}}
+
+async function saveToCloud(id){
+  const sp=aiSprites.find(s=>s.id===id);if(!sp)return;
+  try{
+    stat('<span class="step">Saving...</span>');
+    await ensureDir();
+    const name=sp.label.replace(/[^a-z0-9]/gi,'_')+'_'+Date.now();
+    const resp=await fetch(sp.dataUrl);const blob=await resp.blob();
+    await puter.fs.write(CLOUD_DIR+'/'+name+'.png',blob);
+    const meta=JSON.stringify({label:sp.label,scale:sp.scale,w:sp.w,h:sp.h});
+    await puter.fs.write(CLOUD_DIR+'/'+name+'.json',new Blob([meta],{type:'application/json'}));
+    stat('Saved!');showToast('☁ '+sp.label);
+  }catch(err){
+    console.error('SAVE ERROR:',err);
+    stat('<span class="err">Save failed: '+(err.message||err)+'</span>');
+  }
+}
+
+async function saveAllToCloud(){
+  if(!aiSprites.length){showToast('Nothing to save');return}
+  for(const sp of aiSprites)await saveToCloud(sp.id);
+  showToast('☁ All saved');
+}
+
+async function loadFromCloud(){
+  try{
+    stat('<span class="step">Loading...</span>');
+    await ensureDir();
+    const files=await puter.fs.readdir(CLOUD_DIR);
+    const pngs=files.filter(f=>f.name.endsWith('.png'));
+    if(!pngs.length){stat('Empty');showToast('No saved sprites');return}
+    let n=0;
+    for(const f of pngs){
+      const base=f.name.replace('.png','');
+      if(aiSprites.find(s=>s.id==='c_'+base))continue;
+      const blob=await puter.fs.read(CLOUD_DIR+'/'+f.name);
+      const dataUrl=await new Promise(r=>{const rd=new FileReader();rd.onload=()=>r(rd.result);rd.readAsDataURL(blob)});
+      let label=base.replace(/_\d+$/,'').replace(/_/g,' '),scale=100,w=512,h=512;
+      try{const mb=await puter.fs.read(CLOUD_DIR+'/'+base+'.json');const m=JSON.parse(await mb.text());
+        if(m.label)label=m.label;if(m.scale)scale=m.scale;if(m.w)w=m.w;if(m.h)h=m.h}catch(e){}
+      const img=new Image();img.src=dataUrl;
+      await new Promise(r=>{img.onload=r;img.onerror=r});
+      w=img.naturalWidth||w;h=img.naturalHeight||h;
+      const sp={id:'c_'+base,img,dataUrl,label,w,h,scale};
+      aiSprites.push(sp);addCard(sp);n++;
+    }
+    stat(n?'Loaded '+n:'Already loaded');showToast(n?'☁ '+n+' loaded':'Up to date');
+  }catch(err){
+    console.error('LOAD ERROR:',err);
+    stat('<span class="err">Load failed: '+(err.message||err)+'</span>');
+  }
+}
+
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2500)}
+</script>
+</body>
+</html>
